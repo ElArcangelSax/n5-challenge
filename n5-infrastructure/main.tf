@@ -41,23 +41,33 @@ resource "azurerm_key_vault" "secrets" {
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
   sku_name            = "standard"
+  tenant_id           = data.azurerm_client_config.current.tenant_id 
+
+  # Política de acceso (que seria en este caso recomendado para producción)
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id # seria el ID de mi usuario/SP de ahora
+
+    key_permissions = [
+      "Get", "List", "Create", "Decrypt", "Encrypt"
+    ]
+  }
 }
 #
-resource "null_resource" "deploy" {
-  triggers = {
-    always_run = timestamp()
-  }
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      az aks get-credentials --resource-group ${azurerm_resource_group.main.name} --name ${azurerm_kubernetes_cluster.main.name}
-      cd ../apps && \
-      helmfile -e dev apply && \
-      helmfile -e stage apply
-    EOT
-  }
-
-  depends_on = [
-    azurerm_kubernetes_cluster.main
-  ]
+resource "azurerm_role_assignment" "acr_push" {
+  scope                = azurerm_container_registry.acr.id
+  role_definition_name = "AcrPush"
+  principal_id         = azurerm_user_assigned_identity.github_actions.principal_id
+}
+#
+resource "azurerm_role_assignment" "kv_crypto" {
+  scope                = azurerm_key_vault.secrets.id
+  role_definition_name = "Key Vault Crypto Officer"
+  principal_id         = azurerm_user_assigned_identity.github_actions.principal_id
+}
+#
+resource "azurerm_user_assigned_identity" "github_actions" {
+  name                = "github-actions-identity"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
 }
