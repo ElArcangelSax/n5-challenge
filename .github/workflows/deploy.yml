@@ -5,6 +5,11 @@ on:
     branches: [ master ]
   workflow_dispatch:
 
+permissions:
+  id-token: write  # Habilita OIDC
+  contents: read
+
+
 env:
   TF_RESOURCE_GROUP: "helloapp-rg"
   TF_AKS_NAME: "helloapp-aks"
@@ -25,11 +30,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    # 2. Hago el login en Azure
+    # 2. Hago el login en Azure pero con OIDC
     - name: Azure Login
       uses: azure/login@v1
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}  # Client ID de la Managed Identity
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     # 3. Aca  instalo Terraform
     - name: Setup Terraform
@@ -48,9 +55,6 @@ jobs:
     # 6. Aplicar cambios
     - name: Terraform Apply
       run: terraform apply -auto-approve
-      env:
-        TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
-        TF_VAR_client_secret: ${{ secrets.AZURE_CLIENT_SECRET }}
 
     # 7. Construir y subir imagen
     - name: Build and Push to ACR
@@ -70,11 +74,10 @@ jobs:
     - name: Deploy to AKS
       run: |
         az aks get-credentials --resource-group $TF_RESOURCE_GROUP --name $TF_AKS_NAME
-        cd ../apps && \
+        cd ../n5-apps && \
         helmfile -e dev apply && \
         helmfile -e stage apply
       env:
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         SOPS_AZURE_KEYVAULT_URL: "https://$TF_KEY_VAULT.vault.azure.net"
