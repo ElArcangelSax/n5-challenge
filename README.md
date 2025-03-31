@@ -42,28 +42,43 @@ az ad sp create-for-rbac \
   --scopes /subscriptions/<AZURE_SUBSCRIPTION_ID> \
   --sdk-auth > azure-creds.json
 
-  ⚙️ Despliegue Manual
-1. Infraestructura con Terraform
+```
+### 2. Clave SOPS en Azure Key Vault
+```bash
+az keyvault key create \
+  --name "sops-key" \
+  --vault-name "helloapp-secrets" \
+  --kty RSA \
+  --size 2048 \
+  --ops encrypt decrypt
+```
 
+⚙️ Despliegue Manual
+### 1. Infraestructura con Terraform
+``` bash
 cd terraform
 terraform init
 terraform apply -auto-approve
+```
 
-2. Construir y Publicar Imagen
-
+### 2. Construir y Publicar Imagen
+``` bash 
 az acr build \
   --registry helloappacr \
   --image hello-app:latest \
   --file ../docker/Dockerfile ../docker
+```
 
-3. Desplegar con Helmfile
 
+### 3. Desplegar con Helmfile
+``` bash
 cd ../n5-apps
 helmfile -e dev apply  # Ambiente DEV
 helmfile -e stage apply  # Ambiente STAGE
+```
 
 🔄 Automatización con GitHub Actions
-El workflow .github/workflows/deploy.yml ejecuta:
+El workflow .github/workflows/deploy.yml creado basicamente ejecuta:
 
 Build de la imagen en ACR
 
