@@ -12,15 +12,15 @@ provider "azurerm" {
 }
 #
 resource "azurerm_resource_group" "main" {
-  name     = "myapp-rg"
+  name     = "helloapp-rg"
   location = "East US"
 }
 #
 resource "azurerm_kubernetes_cluster" "main" {
-  name                = "myapp-aks"
+  name                = "helloapp-aks"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
-  dns_prefix          = "myappaks"
+  dns_prefix          = "helloappaks"
 
   default_node_pool {
     name       = "default"
@@ -30,14 +30,14 @@ resource "azurerm_kubernetes_cluster" "main" {
 }
 #
 resource "azurerm_container_registry" "acr" {
-  name                = "myappacr"
+  name                = "helloappacr"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   sku                 = "Basic"
 }
 #
 resource "azurerm_key_vault" "secrets" {
-  name                = "myapp-secrets"
+  name                = "helloapp-secrets"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
   sku_name            = "standard"
