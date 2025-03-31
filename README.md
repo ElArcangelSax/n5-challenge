@@ -121,3 +121,45 @@ kubectl port-forward svc/hello-app-dev 8080:80 -n dev
 
 Abrir: http://localhost:8080 (para poder probar)
 
+
+
+### Corrigiendo Malas practicas con exposicion credenciales on OAUTH2
+
+## 🔐 Configuracion en Azure Portal
+
+1. **Federar la Identity:**
+
+Necesitaremos direccionarnos a Azure Portal > Azure AD > App Registrations.
+
+2. **Selecciona la Managed Identity (github-actions-identity).**
+
+3. **En Certificates & Secrets > Federated credentials, agregamos:**
+```json
+{
+  "name": "github-federated",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:ElArcangelSax/n5-challenge:environment:production",
+  "audiences": ["api://AzureADTokenExchange"]
+}
+```
+
+## 📌 Cual fue el cambio?
+
+| Componente       | Antes                   | Ahora (OAuth2)                          |
+|-----------------|------------------------|----------------------------------------|
+| **Autenticación** | Credenciales estáticas | Tokens JWT efímeros via OIDC         |
+| **Permisos ACR** | Service Principal      | Managed Identity + RBAC               |
+| **Seguridad SOPS** | Client Secret        | Federación directa con Key Vault      |
+
+## ✅ Validación
+
+1. Si ejecutamos el workflow:
+
+Deberiamos verificar que el paso Azure Login muestre:
+Successfully signed in to Azure using OIDC.
+
+2. Comprobando los despliegues: 
+```bash
+kubectl get pods -n dev
+kubectl get pods -n stage
+```
