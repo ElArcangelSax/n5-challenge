@@ -16,19 +16,27 @@ Este proyecto automatiza el despliegue de una aplicación en Azure Kubernetes Se
 - GitHub Repository con secrets configurados
 
 ## 🛠 Estructura del Proyecto
+# N5 Challenge
+
+Este repositorio contiene la infraestructura, configuración y automatización para el despliegue del proyecto **N5 Challenge**.
+
+## 📂 Estructura del Proyecto
+
+```bash
 .
-├── n5-infrastructure/ # Infraestructura como código 
-│ ├── main.tf # Recursos de Azure (AKS, ACR, Key Vault)
-│ └── variables.tf
-├── n5-docker/ # Dockerización
-│ ├── Dockerfile # Imagen personalizada
-│ └── index.html # Contenido estático
-├── n5-apps/ # Configuración de Helm
-│ ├── helmfile.yaml # Entornos multi-stage
-│ ├── charts/ # Helm charts
-│ └── environments/ # Values y secrets por entorno
-└── .github/workflows/ # Automatización CI/CD
-└── deploy.yml
+├── n5-infrastructure/      # Infraestructura como código
+│   ├── main.tf            # Recursos de Azure (AKS, ACR, Key Vault)
+│   └── variables.tf
+├── n5-docker/              # Dockerización
+│   ├── Dockerfile         # Imagen personalizada
+│   └── index.html         # Contenido estático
+├── n5-apps/                # Configuración de Helm
+│   ├── helmfile.yaml      # Entornos multi-stage
+│   ├── charts/            # Helm charts
+│   └── environments/      # Values y secrets por entorno
+└── .github/workflows/      # Automatización CI/CD
+    └── deploy.yml
+```
 
 
 ## 🔐 Configuración Inicial
