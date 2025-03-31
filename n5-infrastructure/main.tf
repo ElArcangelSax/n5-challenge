@@ -61,3 +61,16 @@ resource "null_resource" "deploy" {
     azurerm_kubernetes_cluster.main
   ]
 }
+resource "null_resource" "docker_build" {
+  triggers = {
+    dockerfile_hash = filemd5("${path.module}/../docker/Dockerfile")
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      az acr build --registry ${azurerm_container_registry.acr.name} \
+      --image hello-app:latest \
+      --file ../docker/Dockerfile ../docker
+    EOT
+  }
+}
