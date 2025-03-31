@@ -18,7 +18,7 @@ jobs:
     environment: production
     defaults:
       run:
-        working-directory: ./terraform
+        working-directory: ./n5-challenge
 
     steps:
     # 1. Este seria el  Checkout y configuracion inicial

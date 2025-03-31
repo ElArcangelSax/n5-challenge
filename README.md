@@ -17,7 +17,6 @@ Este proyecto automatiza el despliegue de una aplicación en Azure Kubernetes Se
 
 ## 🛠 Estructura del Proyecto
 
-.
 ├── n5-infrastructure/ # Infraestructura como código
 │ ├── main.tf # Recursos de Azure (AKS, ACR, Key Vault)
 │ └── variables.tf
@@ -78,6 +77,7 @@ helmfile -e stage apply  # Ambiente STAGE
 ```
 
 🔄 Automatización con GitHub Actions
+
 El workflow .github/workflows/deploy.yml creado basicamente ejecuta:
 
 Build de la imagen en ACR
