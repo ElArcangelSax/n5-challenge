@@ -107,7 +107,13 @@ El workflow .github/workflows/deploy.yml ejecuta:
 1. **Infraestructura**:
    ```bash
    cd n5-infrastructure && terraform apply
-```
+
+
+2. **Build/Deploy**:
+
+Push a master  dispara el workflow CI/CD
+
+
 
 🌐 Acceso a la Aplicación
 
