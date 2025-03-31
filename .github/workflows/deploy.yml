@@ -1,0 +1,80 @@
+name: Terraform Deploy Pipeline
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+env:
+  TF_RESOURCE_GROUP: "helloapp-rg"
+  TF_AKS_NAME: "helloapp-aks"
+  TF_ACR_NAME: "helloappacr"
+  TF_KEY_VAULT: "helloapp-secrets"
+  IMAGE_NAME: "hello-app"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: ./terraform
+
+    steps:
+    # 1. Este seria el  Checkout y configuracion inicial
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # 2. Hago el login en Azure
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # 3. Aca  instalo Terraform
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.7
+
+    # 4. Inicializar Terraform
+    - name: Terraform Init
+      run: terraform init
+
+    # 5. Para validar configuracion.....
+    - name: Terraform Validate
+      run: terraform validate
+
+    # 6. Aplicar cambios
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+      env:
+        TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+        TF_VAR_client_secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+    # 7. Construir y subir imagen
+    - name: Build and Push to ACR
+      run: |
+        az acr login --name $TF_ACR_NAME
+        docker build -t $TF_ACR_NAME.azurecr.io/$IMAGE_NAME:$GITHUB_SHA ../docker
+        docker push $TF_ACR_NAME.azurecr.io/$IMAGE_NAME:$GITHUB_SHA
+
+    # 8. Configurar Helm y SOPS
+    - name: Setup Kubernetes Tools
+      run: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+        curl -Ls https://github.com/mozilla/sops/releases/download/v3.7.3/sops-v3.7.3.linux.amd64 -o /usr/local/bin/sops
+        chmod +x /usr/local/bin/sops
+
+    # 9. Asi desplegaria en AKS
+    - name: Deploy to AKS
+      run: |
+        az aks get-credentials --resource-group $TF_RESOURCE_GROUP --name $TF_AKS_NAME
+        cd ../apps && \
+        helmfile -e dev apply && \
+        helmfile -e stage apply
+      env:
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        SOPS_AZURE_KEYVAULT_URL: "https://$TF_KEY_VAULT.vault.azure.net"
