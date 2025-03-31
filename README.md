@@ -16,8 +16,8 @@ Este proyecto automatiza el despliegue de una aplicación en Azure Kubernetes Se
 - GitHub Repository con secrets configurados
 
 ## 🛠 Estructura del Proyecto
-
-├── n5-infrastructure/ # Infraestructura como código
+.
+├── n5-infrastructure/ # Infraestructura como código 
 │ ├── main.tf # Recursos de Azure (AKS, ACR, Key Vault)
 │ └── variables.tf
 ├── n5-docker/ # Dockerización
@@ -78,20 +78,28 @@ helmfile -e stage apply  # Ambiente STAGE
 
 🔄 Automatización con GitHub Actions
 
-El workflow .github/workflows/deploy.yml creado basicamente ejecuta:
+El workflow .github/workflows/deploy.yml ejecuta:
 
-Build de la imagen en ACR
+1. Build de la imagen en ACR.
 
-Despliegue en AKS usando Helmfile
+2. Despliegue en AKS usando Helmfile.
 
-Gestión de secrets con SOPS + Key Vault
+3. Gestión de secrets con SOPS + Key Vault.
 
-Secrets necesarios en GitHub:
 
-Secret	Descripción
-AZURE_CREDENTIALS	Credenciales del Service Principal
-AZURE_CLIENT_ID	Client ID para SOPS
-AZURE_CLIENT_SECRET	Client Secret para SOPS
+## 🔐 Secrets Requeridos en GitHub
+
+| Secret                | Descripción                             | 
+|-----------------------|-----------------------------------------|
+| `AZURE_CREDENTIALS`   | Credenciales del Service Principal      |
+| `AZURE_CLIENT_ID`     | Client ID para autenticación con Azure  |
+| `AZURE_CLIENT_SECRET` | Client Secret para SOPS/Key Vault       |
+
+## 🚀 Despliegue Automatizado
+1. **Infraestructura**:
+   ```bash
+   cd n5-infrastructure && terraform apply
+```
 
 🌐 Acceso a la Aplicación
 
