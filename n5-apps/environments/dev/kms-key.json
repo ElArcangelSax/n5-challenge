@@ -1,0 +1,20 @@
+{
+    "KeyMetadata": {
+        "AWSAccountId": "288713134813",
+        "KeyId": "cbcfb440-66da-4c4a-bd0c-3ac2de8d2a3d",
+        "Arn": "arn:aws:kms:us-east-1:288713134813:key/cbcfb440-66da-4c4a-bd0c-3ac2de8d2a3d",
+        "CreationDate": "2025-03-25T17:54:01.773000-03:00",
+        "Enabled": true,
+        "Description": "SOPS encryption key",
+        "KeyUsage": "ENCRYPT_DECRYPT",
+        "KeyState": "Enabled",
+        "Origin": "AWS_KMS",
+        "KeyManager": "CUSTOMER",
+        "CustomerMasterKeySpec": "SYMMETRIC_DEFAULT",
+        "KeySpec": "SYMMETRIC_DEFAULT",
+        "EncryptionAlgorithms": [
+            "SYMMETRIC_DEFAULT"
+        ],
+        "MultiRegion": false
+    }
+}

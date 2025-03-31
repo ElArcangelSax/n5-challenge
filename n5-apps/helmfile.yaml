@@ -1,0 +1,26 @@
+# Parte 1: Definición de entornos
+environments:
+  dev:
+    values:
+      - environments/dev/values.yaml
+      - environments/dev/secrets.yaml.enc
+  stage:
+    values:
+      - environments/stage/values.yaml
+      - environments/stage/secrets.yaml.enc
+
+---
+releases:
+  - name: hello-app-{{ .Environment.Name }}
+    namespace: {{ .Environment.Name }}
+    chart: ./charts/hello-app
+    values:
+      - image:
+          repository: nginxdemos/hello
+          tag: latest
+    secrets:
+      - "environments/{{ .Environment.Name }}/secrets.yaml.enc"
+    set:
+      - name: environment
+        value: {{ .Environment.Name }}
+---

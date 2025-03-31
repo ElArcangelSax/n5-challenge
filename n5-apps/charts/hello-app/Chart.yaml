@@ -1,0 +1,6 @@
+apiVersion: v2
+name: hello-app
+description: N5 Challenge Hello World application multi-entorno
+version: 0.1.0
+appVersion: "1.0"
+icon: https://www.nginx.com/favicon.ico

@@ -1,0 +1,5 @@
+# Se reemplaza los base values para dev
+environment: "dev"
+replicaCount: 1
+service:
+  type: ClusterIP

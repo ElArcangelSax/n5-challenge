@@ -1,0 +1,3 @@
+creation_rules:
+  - path_regex: environments/.*/secrets\.yaml
+    pgp: "47FCF2FDC4A408CD"  # My KEY_ID
