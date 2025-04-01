@@ -1,0 +1,5 @@
+# Se reemplaza los base values para stg
+environment: "stage"
+replicaCount: 2  # Más réplicas en stage
+service:
+  type: LoadBalancer  # Expone el servicio

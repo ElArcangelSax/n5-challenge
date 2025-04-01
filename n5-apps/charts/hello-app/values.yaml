@@ -1,0 +1,9 @@
+# apps/charts/hello-app/values.yaml
+image:
+  repository: nginxdemos/hello
+  tag: latest
+
+environment: "default"  # Se actualiza  por helmfile
+config:
+  secretValue: ""  # Se reemplaza desde el archivo secrets.yaml.enc
+replicaCount: 1  # Valor por defecto

@@ -1,0 +1,100 @@
+name: Terraform Deploy Pipeline
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Segun solicitaron, es el entorno que hay que aplicar (dev, stage o all)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - dev
+        - stage
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  TF_RESOURCE_GROUP: "helloapp-rg"
+  TF_AKS_NAME: "helloapp-aks"
+  TF_ACR_NAME: "helloappacr"
+  TF_KEY_VAULT: "helloapp-secrets"
+  IMAGE_NAME: "hello-app"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: ./n5-infrastructure
+
+    steps:
+    # 1. Checkout
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # 2. Login en Azure con OIDC
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    # 3. Instalar Terraform
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.7
+
+    # 4. Inicializar Terraform
+    - name: Terraform Init
+      run: terraform init
+
+    # 5. Validar configuración
+    - name: Terraform Validate
+      run: terraform validate
+
+    # 6. Aplicar cambios
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+
+    # 7. Construir y subir imagen
+    - name: Build and Push to ACR
+      run: |
+        az acr login --name $TF_ACR_NAME
+        docker build -t $TF_ACR_NAME.azurecr.io/$IMAGE_NAME:$GITHUB_SHA ../n5-docker
+        docker push $TF_ACR_NAME.azurecr.io/$IMAGE_NAME:$GITHUB_SHA
+
+    # 8. Configurar Helm, SOPS y Helm Secrets
+    - name: Setup Kubernetes Tools
+      run: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+        curl -Ls https://github.com/mozilla/sops/releases/download/v3.7.3/sops-v3.7.3.linux.amd64 -o /usr/local/bin/sops
+        chmod +x /usr/local/bin/sops
+        helm plugin install https://github.com/jkroepke/helm-secrets --version v4.2.2
+
+    # 9. Desplegar en AKS según el entorno seleccionado
+    - name: Deploy to AKS
+      run: |
+        az aks get-credentials --resource-group $TF_RESOURCE_GROUP --name $TF_AKS_NAME
+        cd ../n5-apps
+        
+        if [[ "${{ github.event.inputs.environment }}" == "dev" || "${{ github.event.inputs.environment }}" == "all" ]]; then
+          helmfile -e dev apply
+        fi
+        
+        if [[ "${{ github.event.inputs.environment }}" == "stage" || "${{ github.event.inputs.environment }}" == "all" ]]; then
+          helmfile -e stage apply
+        fi
+      env:
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        SOPS_AZURE_KEYVAULT_URL: "https://$TF_KEY_VAULT.vault.azure.net"

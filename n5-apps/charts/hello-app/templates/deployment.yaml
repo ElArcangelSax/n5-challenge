@@ -1,0 +1,27 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.environment }}
+spec:
+  replicas: {{ .Values.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-{{ .Values.environment }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-{{ .Values.environment }}
+    spec:
+      containers:
+      - name: main
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        env:
+        - name: ENVIRONMENT
+          value: "{{ .Values.environment }}"
+        - name: SECRET_VALUE
+          valueFrom:
+            secretKeyRef:
+              name: hello-secret-{{ .Release.Name }}
+              key: secretValue
+---
